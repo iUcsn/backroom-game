@@ -1,0 +1,5 @@
+# Instrucciones git
+
+git add .
+git commit -m "mensajes"
+git push origin main
