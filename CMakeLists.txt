@@ -14,7 +14,6 @@ set(SOURCES
     src/main.cpp
     src/ProceduralGenerator.cpp
     src/Room.cpp
-    src/Corridor.cpp
 )
 
 add_executable(backrooms-game ${SOURCES})

@@ -1,57 +1,74 @@
 #include "Room.h"
 #include <GL/gl.h>
-#include <cstdlib>
+#include <cstdlib>  // Para funciones aleatorias
 
-// Constructor para inicializar la habitación con posición y dimensiones
 Room::Room(float _x, float _y, float _z, float _width, float _height, float _depth) 
     : x(_x), y(_y), z(_z), width(_width), height(_height), depth(_depth) {}
 
-// Función para dibujar el suelo, las paredes y el techo de la habitación
 void Room::draw() {
-    // Dibujar las paredes
-    // Pared frontal
     glBegin(GL_QUADS);
-    glColor3f(0.8f, 0.1f, 0.1f);  // Color rojo
-    glVertex3f(x, y, z);  // Esquina inferior izquierda
-    glVertex3f(x + width, y, z);  // Esquina inferior derecha
-    glVertex3f(x + width, y + height, z);  // Esquina superior derecha
-    glVertex3f(x, y + height, z);  // Esquina superior izquierda
-    glEnd();
+    
+    // Suelo y techo
+
+    glColor3f(0.7f, 0.7f, 0.7f);  // Color más claro para el techo
+    glVertex3f(x, y + height, z);
+    glVertex3f(x + width, y + height, z);
+    glVertex3f(x + width, y + height, z + depth);
+    glVertex3f(x, y + height, z + depth);
+
+    // Dibujar las paredes con un hueco para la entrada
+    glColor3f(0.8f, 0.8f, 0.8f);  // Paredes más claras
+
+    // Pared frontal con hueco (entrada)
+    drawWallWithEntrance(x, y, z, width, height, true);  // Hueco en la parte frontal
 
     // Pared trasera
-    glBegin(GL_QUADS);
-    glColor3f(0.1f, 0.1f, 0.8f);  // Color azul
-    glVertex3f(x, y, z + depth);  // Esquina inferior izquierda
-    glVertex3f(x + width, y, z + depth);  // Esquina inferior derecha
-    glVertex3f(x + width, y + height, z + depth);  // Esquina superior derecha
-    glVertex3f(x, y + height, z + depth);  // Esquina superior izquierda
-    glEnd();
+    glVertex3f(x, y, z + depth);
+    glVertex3f(x, y + height, z + depth);
+    glVertex3f(x + width, y + height, z + depth);
+    glVertex3f(x + width, y, z + depth);
 
     // Pared izquierda
-    glBegin(GL_QUADS);
-    glColor3f(0.8f, 0.8f, 0.1f);  // Color amarillo
-    glVertex3f(x, y, z);  // Esquina inferior delantera izquierda
-    glVertex3f(x, y, z + depth);  // Esquina inferior trasera izquierda
-    glVertex3f(x, y + height, z + depth);  // Esquina superior trasera izquierda
-    glVertex3f(x, y + height, z);  // Esquina superior delantera izquierda
-    glEnd();
+    glVertex3f(x, y, z);
+    glVertex3f(x, y + height, z);
+    glVertex3f(x, y + height, z + depth);
+    glVertex3f(x, y, z + depth);
 
     // Pared derecha
-    glBegin(GL_QUADS);
-    glColor3f(0.1f, 0.8f, 0.1f);  // Color verde
-    glVertex3f(x + width, y, z);  // Esquina inferior delantera derecha
-    glVertex3f(x + width, y, z + depth);  // Esquina inferior trasera derecha
-    glVertex3f(x + width, y + height, z + depth);  // Esquina superior trasera derecha
-    glVertex3f(x + width, y + height, z);  // Esquina superior delantera derecha
-    glEnd();
+    glVertex3f(x + width, y, z);
+    glVertex3f(x + width, y + height, z);
+    glVertex3f(x + width, y + height, z + depth);
+    glVertex3f(x + width, y, z + depth);
 
-    // Dibujar el techo
+    glEnd();
+}
+
+// Función para dibujar una pared con un hueco (entrada)
+void Room::drawWallWithEntrance(float x, float y, float z, float width, float height, bool isFrontWall) {
+    // Definir el tamaño de la entrada
+    float entranceWidth = width * 0.2f;  // 20% del ancho de la habitación
+    float entranceHeight = height * 0.6f;  // 60% de la altura de la habitación
+
     glBegin(GL_QUADS);
-    glColor3f(0.5f, 0.5f, 1.0f);  // Color azul claro para el techo
-    glVertex3f(x, y + height, z);  // Esquina inferior izquierda del techo
-    glVertex3f(x + width, y + height, z);  // Esquina inferior derecha del techo
-    glVertex3f(x + width, y + height, z + depth);  // Esquina superior derecha del techo
-    glVertex3f(x, y + height, z + depth);  // Esquina superior izquierda del techo
+
+    if (isFrontWall) {
+        // Pared frontal dividida en tres partes: antes del hueco, el hueco, después del hueco
+
+        // Parte izquierda de la pared (antes del hueco)
+        glVertex3f(x, y, z);
+        glVertex3f(x, y + height, z);
+        glVertex3f(x + width / 2 - entranceWidth / 2, y + height, z);
+        glVertex3f(x + width / 2 - entranceWidth / 2, y, z);
+
+        // Parte derecha de la pared (después del hueco)
+        glVertex3f(x + width / 2 + entranceWidth / 2, y, z);
+        glVertex3f(x + width / 2 + entranceWidth / 2, y + height, z);
+        glVertex3f(x + width, y + height, z);
+        glVertex3f(x + width, y, z);
+
+        // Nota: no dibujamos nada en el área del hueco.
+    }
+    
     glEnd();
 }
 
@@ -67,36 +84,8 @@ Room Room::generateRandom(float maxWidth, float maxHeight, float maxDepth) {
     return Room(x, 0.0f, z, width, height, depth);
 }
 
-// Dibuja una pared con una entrada del tamaño del pasillo
-void Room::drawWallWithEntrance(float corridorX, float corridorZ, float corridorWidth) {
-    glBegin(GL_QUADS);
-
-    // Pared izquierda (antes de la entrada)
-    glColor3f(0.7f, 0.7f, 0.7f);  // Color de la pared
-    glVertex3f(x, y, z);
-    glVertex3f(x, y + height, z);
-    glVertex3f(corridorX, y + height, z);
-    glVertex3f(corridorX, y, z);
-
-    // Pared derecha (después de la entrada)
-    glVertex3f(corridorX + corridorWidth, y, z);
-    glVertex3f(corridorX + corridorWidth, y + height, z);
-    glVertex3f(x + width, y + height, z);
-    glVertex3f(x + width, y, z);
-
-    // Techo (opcional, si quieres dejar una abertura arriba)
-    glVertex3f(corridorX, y + height, z);
-    glVertex3f(corridorX + corridorWidth, y + height, z);
-    glVertex3f(corridorX + corridorWidth, y + height, z + depth);
-    glVertex3f(corridorX, y + height, z + depth);
-
-    glEnd();
-}
-
 bool Room::collidesWith(const Room& other) {
-    // Verificamos si las áreas (en el plano XZ) de las dos habitaciones se superponen
     bool collisionX = (x < other.x + other.width) && (x + width > other.x);
     bool collisionZ = (z < other.z + other.depth) && (z + depth > other.z);
-    
     return collisionX && collisionZ;
 }

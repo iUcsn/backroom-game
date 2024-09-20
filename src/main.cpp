@@ -117,6 +117,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
+        // Movimiento de la cámara
         if (movingForward || movingBackward || movingLeft || movingRight) {
             if (currentSpeed < maxSpeed) {
                 currentSpeed += acceleration;
