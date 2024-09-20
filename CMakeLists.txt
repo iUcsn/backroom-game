@@ -10,7 +10,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 find_package(SDL2 REQUIRED)
 find_package(OpenGL REQUIRED)
 
-set(SOURCES src/main.cpp)
+set(SOURCES src/main.cpp src/entorno.cpp)
 
 add_executable(backrooms-game ${SOURCES})
 
