@@ -1,9 +1,8 @@
 #include <SDL2/SDL.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
+#include "ProceduralGenerator.h"  // Incluir el generador procedural
 #include <iostream>
-#include <cmath>
-#include "entorno.h"  // Incluir el header del entorno
 
 int main(int argc, char* argv[]) {
     // Inicializar SDL
@@ -50,11 +49,22 @@ int main(int argc, char* argv[]) {
     // Posición y orientación de la cámara
     float cameraX = 0.0f, cameraY = 1.8f, cameraZ = 0.0f; // Cámara en el centro del cubo, altura de 1.8
     float pitch = 0.0f, yaw = 0.0f;
-    float speed = 0.1f;  // Aumentar un poco la velocidad para pruebas
-    float sensitivity = 0.005f;  // Aumentar sensibilidad para pruebas
+    float currentSpeed = 0.0f;  // Velocidad actual
+    float maxSpeed = 0.1f;      // Velocidad máxima
+    float acceleration = 0.01f; // Aceleración
+    float deceleration = 0.005f; // Desaceleración
+    float sensitivity = 0.005f;  // Sensibilidad del ratón
+
+    // Variables para controlar el movimiento
+    bool movingForward = false, movingBackward = false, movingLeft = false, movingRight = false;
 
     // Habilitar el modo relativo del ratón
     SDL_SetRelativeMouseMode(SDL_TRUE);
+
+    // Inicializar el generador procedural
+    ProceduralGenerator generator;
+    generator.generateRooms(10, 20.0f, 10.0f, 20.0f);  // Generar 10 habitaciones aleatorias
+    generator.connectRooms();  // Conectar las habitaciones con pasillos
 
     bool running = true;
     SDL_Event event;
@@ -78,57 +88,91 @@ int main(int argc, char* argv[]) {
             // Procesar eventos de teclado para el movimiento de la cámara
             if (event.type == SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
-                case SDLK_w:  // Mover hacia adelante
-                    cameraX += sin(yaw) * speed;
-                    cameraZ -= cos(yaw) * speed;
+                case SDLK_w:
+                    std::cout << "W" << std::endl;
+                    movingForward = true;
                     break;
-                case SDLK_s:  // Mover hacia atrás
-                    cameraX -= sin(yaw) * speed;
-                    cameraZ += cos(yaw) * speed;
+                case SDLK_s:
+                    movingBackward = true;
                     break;
-                case SDLK_a:  // Mover hacia la izquierda
-                    cameraX -= cos(yaw) * speed;
-                    cameraZ -= sin(yaw) * speed;
+                case SDLK_a:
+                    movingLeft = true;
                     break;
-                case SDLK_d:  // Mover hacia la derecha
-                    cameraX += cos(yaw) * speed;
-                    cameraZ += sin(yaw) * speed;
+                case SDLK_d:
+                    movingRight = true;
                     break;
                 }
             }
 
-            // Procesar movimiento del ratón para ajustar la rotación de la cámara
+            if (event.type == SDL_KEYUP) {
+                switch (event.key.keysym.sym) {
+                case SDLK_w:
+                    movingForward = false;
+                    break;
+                case SDLK_s:
+                    movingBackward = false;
+                    break;
+                case SDLK_a:
+                    movingLeft = false;
+                    break;
+                case SDLK_d:
+                    movingRight = false;
+                    break;
+                }
+            }
+
             if (event.type == SDL_MOUSEMOTION) {
-                int xrel = event.motion.xrel;  // Movimiento relativo en X
-                int yrel = event.motion.yrel;  // Movimiento relativo en Y
-
+                int xrel = event.motion.xrel;
+                int yrel = event.motion.yrel;
                 yaw += xrel * sensitivity;
-                pitch += yrel * sensitivity;  // Invertimos el signo para corregir la rotación vertical
-
-                // Limitar la rotación vertical para evitar voltear completamente
+                pitch += yrel * sensitivity;
                 if (pitch > 1.5f) pitch = 1.5f;
                 if (pitch < -1.5f) pitch = -1.5f;
             }
         }
 
-        // Limpiar pantalla y buffer de profundidad
+        // Aumentar o disminuir la velocidad según si las teclas están presionadas
+        if (movingForward || movingBackward || movingLeft || movingRight) {
+            if (currentSpeed < maxSpeed) {
+                currentSpeed += acceleration;
+            }
+        } else {
+            if (currentSpeed > 0) {
+                currentSpeed -= deceleration;
+            }
+        }
+
+        // Mover la cámara según la dirección presionada
+        if (movingForward) {
+            cameraX += sin(yaw) * currentSpeed;
+            cameraZ -= cos(yaw) * currentSpeed;
+        }
+        if (movingBackward) {
+            cameraX -= sin(yaw) * currentSpeed;
+            cameraZ += cos(yaw) * currentSpeed;
+        }
+        if (movingLeft) {
+            cameraX -= cos(yaw) * currentSpeed;
+            cameraZ -= sin(yaw) * currentSpeed;
+        }
+        if (movingRight) {
+            cameraX += cos(yaw) * currentSpeed;
+            cameraZ += sin(yaw) * currentSpeed;
+        }
+
+        // Limpiar la pantalla y actualizar la vista
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Aplicar transformaciones de la cámara
         glLoadIdentity();
-        glRotatef(pitch * 180.0f / M_PI, 1.0f, 0.0f, 0.0f);  // Inclinación (Pitch)
-        glRotatef(yaw * 180.0f / M_PI, 0.0f, 1.0f, 0.0f);    // Rotación horizontal (Yaw)
-        glTranslatef(-cameraX, -cameraY, -cameraZ);  // Trasladar la cámara
+        glRotatef(pitch * 180.0f / M_PI, 1.0f, 0.0f, 0.0f);
+        glRotatef(yaw * 180.0f / M_PI, 0.0f, 1.0f, 0.0f);
+        glTranslatef(-cameraX, -cameraY, -cameraZ);
 
-        // Dibujar el entorno
-        drawFloor();
-        drawWalls();
-        drawCeiling();  // Dibujar el techo
+        generator.drawRooms();
+        generator.drawCorridors();
 
         SDL_GL_SwapWindow(window);
     }
 
-    // Limpiar recursos
     SDL_GL_DeleteContext(context);
     SDL_DestroyWindow(window);
     SDL_Quit();

@@ -10,7 +10,12 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 find_package(SDL2 REQUIRED)
 find_package(OpenGL REQUIRED)
 
-set(SOURCES src/main.cpp src/entorno.cpp)
+set(SOURCES
+    src/main.cpp
+    src/ProceduralGenerator.cpp
+    src/Room.cpp
+    src/Corridor.cpp
+)
 
 add_executable(backrooms-game ${SOURCES})
 
