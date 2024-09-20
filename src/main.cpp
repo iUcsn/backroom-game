@@ -1,7 +1,7 @@
 #include <SDL2/SDL.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
-#include "ProceduralGenerator.h"  // Incluir el generador procedural
+#include "ProceduralGenerator.h"
 #include <iostream>
 
 int main(int argc, char* argv[]) {
@@ -47,15 +47,14 @@ int main(int argc, char* argv[]) {
     glEnable(GL_DEPTH_TEST);
 
     // Posición y orientación de la cámara
-    float cameraX = 0.0f, cameraY = 1.8f, cameraZ = 0.0f; // Cámara en el centro del cubo, altura de 1.8
+    float cameraX = 0.0f, cameraY = 1.8f, cameraZ = 0.0f;
     float pitch = 0.0f, yaw = 0.0f;
-    float currentSpeed = 0.0f;  // Velocidad actual
-    float maxSpeed = 0.1f;      // Velocidad máxima
-    float acceleration = 0.01f; // Aceleración
-    float deceleration = 0.005f; // Desaceleración
-    float sensitivity = 0.005f;  // Sensibilidad del ratón
+    float currentSpeed = 0.0f;
+    float maxSpeed = 0.1f;
+    float acceleration = 0.01f;
+    float deceleration = 0.005f;
+    float sensitivity = 0.005f;
 
-    // Variables para controlar el movimiento
     bool movingForward = false, movingBackward = false, movingLeft = false, movingRight = false;
 
     // Habilitar el modo relativo del ratón
@@ -63,8 +62,7 @@ int main(int argc, char* argv[]) {
 
     // Inicializar el generador procedural
     ProceduralGenerator generator;
-    generator.generateRooms(10, 20.0f, 10.0f, 20.0f);  // Generar 10 habitaciones aleatorias
-    generator.connectRooms();  // Conectar las habitaciones con pasillos
+    generator.generateRooms(10, 20.0f, 10.0f, 20.0f);
 
     bool running = true;
     SDL_Event event;
@@ -75,21 +73,9 @@ int main(int argc, char* argv[]) {
                 running = false;
             }
 
-            // Si se cambia el tamaño de la ventana, ajustamos el viewport y la perspectiva
-            if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED) {
-                SDL_GetWindowSize(window, &windowWidth, &windowHeight);
-                glViewport(0, 0, windowWidth, windowHeight);
-                glMatrixMode(GL_PROJECTION);
-                glLoadIdentity();
-                gluPerspective(45.0, (double)windowWidth / (double)windowHeight, 0.1, 1000.0);
-                glMatrixMode(GL_MODELVIEW);
-            }
-
-            // Procesar eventos de teclado para el movimiento de la cámara
             if (event.type == SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
                 case SDLK_w:
-                    std::cout << "W" << std::endl;
                     movingForward = true;
                     break;
                 case SDLK_s:
@@ -131,7 +117,6 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        // Aumentar o disminuir la velocidad según si las teclas están presionadas
         if (movingForward || movingBackward || movingLeft || movingRight) {
             if (currentSpeed < maxSpeed) {
                 currentSpeed += acceleration;
@@ -142,7 +127,6 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        // Mover la cámara según la dirección presionada
         if (movingForward) {
             cameraX += sin(yaw) * currentSpeed;
             cameraZ -= cos(yaw) * currentSpeed;
@@ -160,7 +144,6 @@ int main(int argc, char* argv[]) {
             cameraZ += sin(yaw) * currentSpeed;
         }
 
-        // Limpiar la pantalla y actualizar la vista
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glLoadIdentity();
         glRotatef(pitch * 180.0f / M_PI, 1.0f, 0.0f, 0.0f);
@@ -168,7 +151,6 @@ int main(int argc, char* argv[]) {
         glTranslatef(-cameraX, -cameraY, -cameraZ);
 
         generator.drawRooms();
-        generator.drawCorridors();
 
         SDL_GL_SwapWindow(window);
     }

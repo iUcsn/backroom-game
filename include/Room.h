@@ -14,6 +14,9 @@ public:
     // Generar una habitación de tamaño aleatorio
     static Room generateRandom(float maxWidth, float maxHeight, float maxDepth);
 
+    // Dibuja una pared con una entrada del tamaño de un pasillo
+    void drawWallWithEntrance(float corridorX, float corridorZ, float corridorWidth);
+
     // Verificar si una habitación colisiona con otra
     bool collidesWith(const Room& other);
 };

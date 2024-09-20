@@ -8,15 +8,6 @@ Room::Room(float _x, float _y, float _z, float _width, float _height, float _dep
 
 // Función para dibujar el suelo, las paredes y el techo de la habitación
 void Room::draw() {
-    // Dibujar el suelo
-    glBegin(GL_QUADS);
-    glColor3f(0.3f, 0.3f, 0.3f);  // Color gris para el suelo
-    glVertex3f(x, y, z);
-    glVertex3f(x + width, y, z);
-    glVertex3f(x + width, y, z + depth);
-    glVertex3f(x, y, z + depth);
-    glEnd();
-
     // Dibujar las paredes
     // Pared frontal
     glBegin(GL_QUADS);
@@ -76,8 +67,36 @@ Room Room::generateRandom(float maxWidth, float maxHeight, float maxDepth) {
     return Room(x, 0.0f, z, width, height, depth);
 }
 
-// Verifica si esta habitación colisiona con otra
+// Dibuja una pared con una entrada del tamaño del pasillo
+void Room::drawWallWithEntrance(float corridorX, float corridorZ, float corridorWidth) {
+    glBegin(GL_QUADS);
+
+    // Pared izquierda (antes de la entrada)
+    glColor3f(0.7f, 0.7f, 0.7f);  // Color de la pared
+    glVertex3f(x, y, z);
+    glVertex3f(x, y + height, z);
+    glVertex3f(corridorX, y + height, z);
+    glVertex3f(corridorX, y, z);
+
+    // Pared derecha (después de la entrada)
+    glVertex3f(corridorX + corridorWidth, y, z);
+    glVertex3f(corridorX + corridorWidth, y + height, z);
+    glVertex3f(x + width, y + height, z);
+    glVertex3f(x + width, y, z);
+
+    // Techo (opcional, si quieres dejar una abertura arriba)
+    glVertex3f(corridorX, y + height, z);
+    glVertex3f(corridorX + corridorWidth, y + height, z);
+    glVertex3f(corridorX + corridorWidth, y + height, z + depth);
+    glVertex3f(corridorX, y + height, z + depth);
+
+    glEnd();
+}
+
 bool Room::collidesWith(const Room& other) {
-    return (x < other.x + other.width && x + width > other.x &&
-            z < other.z + other.depth && z + depth > other.z);
+    // Verificamos si las áreas (en el plano XZ) de las dos habitaciones se superponen
+    bool collisionX = (x < other.x + other.width) && (x + width > other.x);
+    bool collisionZ = (z < other.z + other.depth) && (z + depth > other.z);
+    
+    return collisionX && collisionZ;
 }
